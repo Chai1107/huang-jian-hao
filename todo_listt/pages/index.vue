@@ -116,6 +116,7 @@ export default {
       }
       this.value = ''
       this.switchh = true
+      this.$Message.success('添加成功')
     },
     // 代办事项列表删除按钮点击事件
     deleteBtnWait(index) {
@@ -133,13 +134,20 @@ export default {
       console.log(item)
       this.waitTodoList.splice(index, 1)
       this.alreadyDoList.push({ alreadyDoName: item.waitTodoName })
-      this.$Message.success('已完成，请到已办事项查看')
+      this.$Message.success('已完成')
+      if (this.waitTodoList.length === 0) {
+        this.switchh = false
+      }
     },
     // 已办事项取消按钮
     alreadyDoClick(indexAl, itemAl) {
       console.log(itemAl)
       this.alreadyDoList.splice(indexAl, 1)
       this.waitTodoList.push({ waitTodoName: itemAl.alreadyDoName })
+      this.$Message.error('未完成')
+      if (this.alreadyDoList.length === 0) {
+        this.switchh = true
+      }
     },
   },
 }
