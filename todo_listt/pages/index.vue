@@ -19,19 +19,15 @@
       <div class="wait-todo-list-contain">
         <div class="wait-todo-list-contain-head">
           <p class="wait-todo-p">{{ listType }}</p>
-          <i-switch
-            v-model="switchh"
-            size="large"
-            true-color="#2db7f5"
-            false-color="#2db7f5"
-          >
-            <span slot="open">待办</span>
-            <span slot="close">已办</span>
-          </i-switch>
+          <RadioGroup v-model="stateBtn" type="button">
+            <Radio label="0">全部</Radio>
+            <Radio label="1">待办</Radio>
+            <Radio label="2">已办</Radio>
+          </RadioGroup>
         </div>
         <!-- 待办事项列表卡片 -->
         <div class="card-first">
-          <div v-if="list.length === 0" class="card-first-no-data">
+          <div v-if="todoList.length === 0" class="card-first-no-data">
             没有事项
           </div>
           <div
@@ -42,7 +38,7 @@
             <div class="wait-todo-items-contain">
               <!-- 已完成按钮 -->
               <Icon
-                v-if="switchh === true"
+                v-if="item.state === 0"
                 class="already-btn"
                 type="md-radio-button-off"
                 @click="waitToDoClick(index, item)"
@@ -51,27 +47,17 @@
                 v-else
                 class="already-btn"
                 type="md-radio-button-on"
-                @click="alreadyDoClick(index, item)"
+                @click="waitToDoClick(index, item)"
               />
-              <p v-if="switchh === true" class="wait-todo-items-contain-p">
-                {{ item.waitTodoName }}
-              </p>
-              <p v-else class="wait-todo-items-contain-p">
-                {{ item.alreadyDoName }}
+              <p class="wait-todo-items-contain-p">
+                {{ item.name }}
               </p>
             </div>
             <!-- 删除事项按钮 -->
             <Icon
-              v-if="switchh === true"
               class="delete-btn"
               type="ios-backspace"
               @click="deleteBtnWait(index)"
-            />
-            <Icon
-              v-else
-              class="delete-btn"
-              type="ios-backspace"
-              @click="deleteBtnAlready(index)"
             />
           </div>
         </div>
@@ -84,25 +70,58 @@
 export default {
   data() {
     return {
+      stateBtn: '0',
       switchh: true,
       value: '',
-      waitTodoList: [],
-      alreadyDoList: [],
+      todoList: [
+        {
+          name: '吃饭',
+          state: 0,
+        },
+        {
+          name: '刷牙',
+          state: 0,
+        },
+        {
+          name: '洗澡',
+          state: 0,
+        },
+        {
+          name: '看电影',
+          state: 1,
+        },
+      ],
     }
   },
   computed: {
     listType() {
-      if (this.switchh === true) {
+      if (this.stateBtn === '0') {
+        return '全部事项'
+      } else if (this.stateBtn === '1') {
         return '待办事项'
       } else {
         return '已办事项'
       }
     },
     list() {
-      if (this.switchh === true) {
-        return this.waitTodoList
+      if (this.stateBtn === '0') {
+        return this.todoList
+      } else if (this.stateBtn === '1') {
+        const waitToDoList = []
+        for (const item of this.todoList) {
+          if (item.state === 0) {
+            waitToDoList.push(item)
+          }
+        }
+        return waitToDoList
       } else {
-        return this.alreadyDoList
+        const alreadyDoList = []
+        for (const item of this.todoList) {
+          if (item.state === 1) {
+            alreadyDoList.push(item)
+          }
+        }
+        return alreadyDoList
       }
     },
   },
@@ -110,7 +129,7 @@ export default {
     // 确认按钮点击事件
     comfirmBtn() {
       if (this.value) {
-        this.waitTodoList.push({ waitTodoName: this.value })
+        this.todoList.push({ name: this.value, state: 0 })
       } else {
         this.$Message.warning('请输入你要做的事情')
       }
@@ -121,7 +140,7 @@ export default {
     // 代办事项列表删除按钮点击事件
     deleteBtnWait(index) {
       console.log(index)
-      this.waitTodoList.splice(index, 1)
+      this.todoList.splice(index, 1)
       this.$Message.success('已删除')
     },
     // 已办事项列表删除按钮点击事件
@@ -132,21 +151,12 @@ export default {
     // 代办事项完成按钮
     waitToDoClick(index, item) {
       console.log(item)
-      this.waitTodoList.splice(index, 1)
-      this.alreadyDoList.push({ alreadyDoName: item.waitTodoName })
-      this.$Message.success('已完成')
-      if (this.waitTodoList.length === 0) {
-        this.switchh = false
-      }
-    },
-    // 已办事项取消按钮
-    alreadyDoClick(indexAl, itemAl) {
-      console.log(itemAl)
-      this.alreadyDoList.splice(indexAl, 1)
-      this.waitTodoList.push({ waitTodoName: itemAl.alreadyDoName })
-      this.$Message.error('未完成')
-      if (this.alreadyDoList.length === 0) {
-        this.switchh = true
+      if (item.state === 1) {
+        item.state = 0
+        this.$Message.error('未完成')
+      } else {
+        item.state = 1
+        this.$Message.success('已完成')
       }
     },
   },
