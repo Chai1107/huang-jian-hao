@@ -17,65 +17,61 @@
       </div>
       <!-- 代办事项列表 -->
       <div class="wait-todo-list-contain">
-        <P class="wait-todo-p"> 待办事项 </P>
+        <div class="wait-todo-list-contain-head">
+          <p class="wait-todo-p">{{ listType }}</p>
+          <i-switch
+            v-model="switchh"
+            size="large"
+            true-color="#2db7f5"
+            false-color="#2db7f5"
+          >
+            <span slot="open">待办</span>
+            <span slot="close">已办</span>
+          </i-switch>
+        </div>
         <!-- 待办事项列表卡片 -->
         <div class="card-first">
-          <div v-if="waitTodoList.length === 0" class="card-first-no-data">
+          <div v-if="list.length === 0" class="card-first-no-data">
             没有事项
           </div>
           <div
-            v-for="(item, index) of waitTodoList"
+            v-for="(item, index) of list"
             :key="index"
             class="wait-todo-items"
           >
             <div class="wait-todo-items-contain">
               <!-- 已完成按钮 -->
               <Icon
+                v-if="switchh === true"
                 class="already-btn"
                 type="md-radio-button-off"
                 @click="waitToDoClick(index, item)"
               />
-              <p class="wait-todo-items-contain-p">
+              <Icon
+                v-else
+                class="already-btn"
+                type="md-radio-button-on"
+                @click="alreadyDoClick(index, item)"
+              />
+              <p v-if="switchh === true" class="wait-todo-items-contain-p">
                 {{ item.waitTodoName }}
+              </p>
+              <p v-else class="wait-todo-items-contain-p">
+                {{ item.alreadyDoName }}
               </p>
             </div>
             <!-- 删除事项按钮 -->
             <Icon
+              v-if="switchh === true"
               class="delete-btn"
               type="ios-backspace"
               @click="deleteBtnWait(index)"
             />
-          </div>
-        </div>
-      </div>
-      <!-- 已办事项列表 -->
-      <div class="already-do-list">
-        <P class="already-do-list-p">已办事项</P>
-        <!-- 待办事项列表卡片 -->
-        <div class="card-second">
-          <div v-if="alreadyDoList.length === 0" class="card-first-no-data">
-            没有事项
-          </div>
-          <div
-            v-for="(item2, index2) of alreadyDoList"
-            :key="index2"
-            class="already-do-items"
-          >
-            <div class="already-do-items-contain">
-              <Icon
-                class="already-btn"
-                type="md-radio-button-on"
-                @click="alreadyDoClick(index2, item2)"
-              />
-              <p class="already-do-items-contain-p">
-                {{ item2.alreadyDoName }}
-              </p>
-            </div>
-            <!-- 删除事项按钮 -->
             <Icon
+              v-else
               class="delete-btn"
               type="ios-backspace"
-              @click="deleteBtnAlready(index2)"
+              @click="deleteBtnAlready(index)"
             />
           </div>
         </div>
@@ -88,181 +84,67 @@
 export default {
   data() {
     return {
+      switchh: true,
       value: '',
       waitTodoList: [],
       alreadyDoList: [],
     }
   },
+  computed: {
+    listType() {
+      if (this.switchh === true) {
+        return '待办事项'
+      } else {
+        return '已办事项'
+      }
+    },
+    list() {
+      if (this.switchh === true) {
+        return this.waitTodoList
+      } else {
+        return this.alreadyDoList
+      }
+    },
+  },
   methods: {
     // 确认按钮点击事件
     comfirmBtn() {
-      const obj = {
-        waitTodoName: this.value,
-      }
       if (this.value) {
-        this.waitTodoList.push(obj)
+        this.waitTodoList.push({ waitTodoName: this.value })
       } else {
         this.$Message.warning('请输入你要做的事情')
       }
       this.value = ''
+      this.switchh = true
     },
     // 代办事项列表删除按钮点击事件
     deleteBtnWait(index) {
       console.log(index)
       this.waitTodoList.splice(index, 1)
+      this.$Message.success('已删除')
     },
     // 已办事项列表删除按钮点击事件
-    deleteBtnAlready(index2) {
-      this.alreadyDoList.splice(index2, 1)
+    deleteBtnAlready(indexAl) {
+      this.alreadyDoList.splice(indexAl, 1)
+      this.$Message.success('已删除')
     },
     // 代办事项完成按钮
     waitToDoClick(index, item) {
+      console.log(item)
       this.waitTodoList.splice(index, 1)
-      const obj = {
-        alreadyDoName: item.waitTodoName,
-      }
-      this.alreadyDoList.push(obj)
+      this.alreadyDoList.push({ alreadyDoName: item.waitTodoName })
+      this.$Message.success('已完成，请到已办事项查看')
     },
     // 已办事项取消按钮
-    alreadyDoClick(index2, item2) {
-      this.alreadyDoList.splice(index2, 1)
-      const obj2 = {
-        waitTodoName: item2.alreadyDoName,
-      }
-      this.waitTodoList.push(obj2)
+    alreadyDoClick(indexAl, itemAl) {
+      console.log(itemAl)
+      this.alreadyDoList.splice(indexAl, 1)
+      this.waitTodoList.push({ waitTodoName: itemAl.alreadyDoName })
     },
   },
 }
 </script>
 
 <style>
-.container {
-  margin: 0 auto;
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: url('../static/bg.jpg');
-  background-size: cover;
-}
-.card {
-  background-color: rgba(255, 255, 255, 0.9);
-  padding: 24px;
-  border-radius: 8px;
-  width: 400px;
-  height: 610px;
-}
-.you-need-todo {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.input {
-  margin-right: 8px;
-}
-.ivu-btn-info {
-  height: 36px;
-}
-.confirm-btn-icon {
-  font-size: 22px;
-  font-weight: 700;
-}
-.wait-todo-list-contain {
-  border-top: 2px dashed #999;
-  margin-top: 16px;
-  padding-top: 8px;
-}
-.wait-todo-p {
-  font-size: 24px;
-  font-weight: 700;
-  margin-bottom: 4px;
-}
-.wait-todo-items,
-.already-do-items {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: rgba(255, 255, 255, 0.9);
-  padding: 8px;
-  width: 100%;
-  border-radius: 4px;
-  margin-bottom: 4px;
-}
-.wait-todo-items:hover,
-.already-do-items:hover {
-  background-color: rgba(255, 255, 255, 0.5);
-}
-.wait-todo-items-contain,
-.already-do-items-contain {
-  display: flex;
-  align-items: center;
-}
-.ivu-checkbox-inner {
-  width: 22px;
-  height: 22px;
-}
-.delete-btn {
-  font-size: 20px;
-  color: rgb(253, 81, 81);
-}
-.delete-btn:hover {
-  cursor: pointer;
-  color: rgb(255, 131, 131);
-}
-.already-btn {
-  font-size: 20px;
-  color: #2db7f5;
-  margin-right: 4px;
-}
-.already-btn:hover {
-  cursor: pointer;
-  color: #88d9ff;
-}
-.wait-todo-items-contain-p,
-.already-do-items-contain-p {
-  margin-left: 4px;
-  font-size: 12px;
-}
-.already-do-list {
-  border-top: 2px dashed #999;
-  margin-top: 16px;
-  padding-top: 8px;
-}
-.already-do-list-p {
-  font-size: 24px;
-  font-weight: 700;
-  margin-bottom: 4px;
-}
-.card-first-no-data {
-  color: #727272;
-  font-size: 12px;
-  position: relative;
-  display: flex;
-  justify-content: center;
-  line-height: 180px;
-}
-.card-first,
-.card-second {
-  height: 200px;
-  overflow: auto;
-  padding-right: 4px;
-}
-.card-first::-webkit-scrollbar,
-.card-second::-webkit-scrollbar {
-  width: 4px;
-  position: relative;
-}
-.card-first::-webkit-scrollbar-thumb,
-.card-second::-webkit-scrollbar-thumb {
-  border-radius: 20px;
-  background: #88d9ff;
-}
-.card-first::-webkit-scrollbar-track,
-.card-second::-webkit-scrollbar-track {
-  border-radius: 0;
-  background: rgba(255, 255, 255, 0);
-}
-.ivu-input {
-  border: none;
-}
+@import '../assets/main';
 </style>
