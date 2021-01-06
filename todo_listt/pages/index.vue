@@ -55,6 +55,7 @@
             </div>
             <!-- 删除事项按钮 -->
             <Icon
+              v-if="stateBtn === '0'"
               class="delete-btn"
               type="ios-backspace"
               @click="deleteBtnWait(index)"
